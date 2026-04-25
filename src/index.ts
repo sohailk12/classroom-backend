@@ -1,15 +1,43 @@
-import express from 'express';
+import { eq } from 'drizzle-orm';
+import { db } from './db/index.js';
+import { demoUsers } from './db/schema/index.js';
 
-const app = express();
-const PORT = 8000;
+async function main() {
+  try {
+    console.log('Performing CRUD operations...');
 
-app.use(express.json());
+    // CREATE
+    const newUserResult = await db
+      .insert(demoUsers)
+      .values({ name: 'Admin User', email: `admin-${Date.now()}@example.com` }) // unique email
+      .returning();
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello from Classroom Backend!' });
-});
+    const newUser = newUserResult[0]!;
+    console.log('✅ CREATE:', newUser);
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+    // READ
+    const [foundUser] = await db.select().from(demoUsers).where(eq(demoUsers.id, newUser.id));
+    console.log('✅ READ:', foundUser);
+
+    // UPDATE
+    const [updatedUser] = await db
+      .update(demoUsers)
+      .set({ name: 'Super Admin' })
+      .where(eq(demoUsers.id, newUser.id))
+      .returning();
+
+    console.log('✅ UPDATE:', updatedUser);
+
+    // DELETE
+    await db.delete(demoUsers).where(eq(demoUsers.id, newUser.id));
+    console.log('✅ DELETE complete');
+
+    console.log('\\nFull CRUD successful!');
+  } catch (error) {
+    console.error('❌ Error:', error);
+    process.exit(1);
+  }
+}
+
+main();
 
