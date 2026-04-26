@@ -15,6 +15,7 @@ export const departments = pgTable('departments', {
 export const subjects = pgTable('subjects', {
     id: integer('id').primaryKey().notNull().unique(),
     departmentId: integer('department_id').notNull().references(() => departments.id,{onDelete:'restrict'}),
+    code: varchar('code', { length: 10 }).notNull().unique(),
     name: varchar('name', { length: 255 }).notNull(),
     description: varchar('description', { length: 500 }),
     ...timestamps,
@@ -25,7 +26,7 @@ export const departmentsRelations= relations(departments, ({many})=>({subjects: 
 export const subjectsRelations= relations(subjects, ({one,many})=>({
     department: one(departments, 
         {   
-            fields: [subjects.departmentId], 
+            fields: [subjects.departmentId],  
             references: [departments.id]
         }
         ),
