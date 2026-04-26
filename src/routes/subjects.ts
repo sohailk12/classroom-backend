@@ -9,10 +9,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         // Simulate fetching subjects from a database
-        const {search,department,page=1,limit=10}=req.query;
-        const currentPage=Math.max(1,Number(page));
-        const limitPerPage=Math.max(1,Number(limit)); 
+        const { search, department, page = '1', limit = '10' } = req.query;
+        const parsedPage = Number.parseInt(String(page), 10);
+        const parsedLimit = Number.parseInt(String(limit), 10);
 
+        const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const limitPerPage = Number.isFinite(parsedLimit) && parsedLimit > 0
+                ? Math.min(parsedLimit, 100)
+                : 10;
         const offset=(currentPage-1)*limitPerPage;
 
         const filterConditions=[];
